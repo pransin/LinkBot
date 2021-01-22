@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from keyconfig import *
 
 bot = commands.Bot(command_prefix = '$')
 
@@ -35,4 +36,4 @@ async def add(ctx, *args):
     await ctx.send('{} arguments: {}'.format(len(args), ', '.join(args)))
 
 # client.run('ODAxNzU2NTIzMjAxNDI5NTE0.YAlT8w.X93uh8DNfOp3vbVBUcS0kgYQrU8')
-bot.run('ODAxNzU2NTIzMjAxNDI5NTE0.YAlT8w.X93uh8DNfOp3vbVBUcS0kgYQrU8')
+bot.run(BOT_TOKEN)
