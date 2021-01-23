@@ -1,2 +1,3 @@
 keyconfig.py
-__pycache__/*
+linkbot-env
+__pycache__
