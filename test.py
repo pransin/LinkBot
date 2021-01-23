@@ -1,18 +1,20 @@
 import discord
 from discord.ext import commands
 from keyconfig import *
+import pymongo
+from datetime import datetime
 
 bot = commands.Bot(command_prefix = '$')
-
+myclient = pymongo.MongoClient(MONGO_URL)
+db = myclient["linkbot"]
 client = discord.Client()
 
 class Schedule():
 
     def __init__(self, subject, time, section, link):
-        self.subject = subject
-        self.time = time
-        self.section = section
-        self.link = link
+        coll = db["bot"]
+        schedule_dict = {"subject": subject, "time": time, "section": section, "link": link}
+        coll.insert_one(schedule_dict)
 
 @client.event
 async def on_ready():
@@ -33,6 +35,7 @@ async def on_message(message):
 @bot.command()
 async def add(ctx, *args):
     print(args)
+    Schedule(args[0], args[1], args[2], args[3])
     await ctx.send('{} arguments: {}'.format(len(args), ', '.join(args)))
 
 # client.run('ODAxNzU2NTIzMjAxNDI5NTE0.YAlT8w.X93uh8DNfOp3vbVBUcS0kgYQrU8')
