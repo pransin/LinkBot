@@ -47,7 +47,6 @@ class Schedule():
     
     #adds meet link corresponding to a course
     @staticmethod
-<<<<<<< HEAD
     def add_link(*args):
         if validators.url(args[2]):
             course = courses.find_one_and_update({"name": args[0]}, {"$set": {"name": args[0]}}, upsert= True, return_document = pymongo.ReturnDocument.AFTER)
@@ -59,15 +58,7 @@ class Schedule():
                 return 1
         return 0
 
-    #retrieving link(s) of a course from the db
-=======
-    async def add_link(ctx, *args):
-        query = {"subject": args[0], "section": args[1]}
-        print(coll.update_one(query, {"$push": {"link": args[2]}}))
-        await ctx.send(f'Link added (if course exists) to {args[0]} {args[1]}')
-
     #retrieves link(s) of a subject from the db
->>>>>>> remove all method added
     @staticmethod
     def get_link(*args):
         sched = Schedule.get_schedule(args[0], args[1])
