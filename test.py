@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from keyconfig import *
 import pymongo
 from datetime import datetime
 import schedule
@@ -12,6 +11,8 @@ is_prod = os.environ.get('IS_HEROKU')
 if is_prod:
     MONGO_URL = os.environ.get('MONGO_URL')
     BOT_TOKEN = os.environ.get('BOT_TOKEN')
+else:
+    from keyconfig import *
 
 bot = commands.Bot(command_prefix = '$')
 myclient = pymongo.MongoClient(MONGO_URL)
