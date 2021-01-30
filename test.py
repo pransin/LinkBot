@@ -6,11 +6,12 @@ import schedule
 import validators
 import os
 
-is_prod = os.environ.get('IS_HEROKU')
+is_prod = os.environ['IS_HEROKU']
+print(is_prod)
 
 if is_prod:
-    MONGO_URL = os.environ.get('MONGO_URL')
-    BOT_TOKEN = os.environ.get('BOT_TOKEN')
+    MONGO_URL = os.environ['MONGO_URL']
+    BOT_TOKEN = os.environ['BOT_TOKEN']
 else:
     from keyconfig import *
 
