@@ -5,6 +5,13 @@ import pymongo
 from datetime import datetime
 import schedule
 import validators
+import os
+
+is_prod = os.environ.get('IS_HEROKU')
+
+if is_prod:
+    MONGO_URL = os.environ.get('MONGO_URL')
+    BOT_TOKEN = os.environ.get('BOT_TOKEN')
 
 bot = commands.Bot(command_prefix = '$')
 myclient = pymongo.MongoClient(MONGO_URL)
