@@ -39,6 +39,7 @@ class Schedule():
     
     #adds meet link corresponding to a course
     @staticmethod
+<<<<<<< HEAD
     def add_link(*args):
         if validators.url(args[2]):
             course = courses.find_one_and_update({"name": args[0]}, {"$set": {"name": args[0]}}, upsert= True, return_document = pymongo.ReturnDocument.AFTER)
@@ -51,6 +52,14 @@ class Schedule():
         return 0
 
     #retrieving link(s) of a course from the db
+=======
+    async def add_link(ctx, *args):
+        query = {"subject": args[0], "section": args[1]}
+        print(coll.update_one(query, {"$push": {"link": args[2]}}))
+        await ctx.send(f'Link added (if course exists) to {args[0]} {args[1]}')
+
+    #retrieves link(s) of a subject from the db
+>>>>>>> remove all method added
     @staticmethod
     def get_link(*args):
         sched = get_schedule(args[0], args[1])
@@ -84,6 +93,10 @@ class Schedule():
         return schedules.find_one({"name": get_course()['_id'], "section": section})
 
 
+    @staticmethod
+    async def remove_all(ctx):
+        coll.drop()
+        await ctx.send('Database cleared.')
 @bot.event
 async def on_ready():
     print('Bot Ready')
@@ -146,5 +159,9 @@ async def remove_link(ctx, *args):
         await ctx.send("Link not present.")
 
 
+
+@bot.command()
+async def remove_all(ctx):
+    await Schedule.remove_all(ctx)
 
 bot.run(BOT_TOKEN)
