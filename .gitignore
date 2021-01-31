@@ -2,3 +2,4 @@ keyconfig.py
 linkbot-env
 __pycache__
 .env
+.vscode
