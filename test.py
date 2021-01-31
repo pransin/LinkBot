@@ -6,14 +6,14 @@ import schedule
 import validators
 import os
 
-is_prod = os.environ['IS_HEROKU']
-print(is_prod)
+# is_prod = os.environ['IS_HEROKU']
+# print(is_prod)
 
-if is_prod:
-    MONGO_URL = os.environ['MONGO_URL']
-    BOT_TOKEN = os.environ['BOT_TOKEN']
-else:
-    from keyconfig import *
+# if is_prod:
+MONGO_URL = os.environ['MONGO_URL']
+BOT_TOKEN = os.environ['BOT_TOKEN']
+# else:
+    # from keyconfig import *
 
 bot = commands.Bot(command_prefix = '$')
 myclient = pymongo.MongoClient(MONGO_URL)
