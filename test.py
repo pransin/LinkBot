@@ -50,7 +50,7 @@ class Schedule():
                 if link in sched['link']:
                     raise Exception("Link already added!")
                 else:
-                    schedules.update_one({"query": sched, "$push": {"link": link}})
+                    schedules.update_one({"query": sched}, {"$push": {"link": link}})
         else:
             raise Exception("Invalid URL format.")
     
@@ -94,20 +94,21 @@ class Schedule():
 
 
     @staticmethod
-    async def remove_all(ctx):
-        coll.drop()
-        await ctx.send('Database cleared.')
+    async def remove_all():
+        courses.drop()
+        schedules.drop()
+
 @bot.event
 async def on_ready():
     print('Bot Ready')
   
 
-@bot.command()
+@bot.command(brief='The name says it all')
 async def ping(ctx):
     await ctx.send(f'I am just {round(bot.latency * 1000)}ms away from you :cupid:.')
 
 # Registers the course in the database
-@bot.command(aliases=['register', 'add'])
+@bot.command(aliases=['register', 'add'], brief='Add a course to the DB')
 async def register_course(ctx, *args):
     if len(args) != 5:
         await ctx.send('Usage: Course, day, time, section, link')
@@ -118,7 +119,7 @@ async def register_course(ctx, *args):
         except Exception as e:
             await ctx.send(f'{e}')
 
-@bot.command()
+@bot.command(brief='Supposedly deregisters all sections of a course')
 async def deregister(ctx, *args):
     status = Schedule.deregister(*args)
     if status:
@@ -127,7 +128,7 @@ async def deregister(ctx, *args):
         await ctx.send("Course does not exist.")
 
 
-@bot.command(aliases = ['add_link'])
+@bot.command(aliases = ['add_link'], brief='Adds link to a course. Usage: <Course> <Section>')
 async def addlink(ctx, *args):
     status = Schedule.add_link(*args)
     if status == 1:
@@ -137,7 +138,7 @@ async def addlink(ctx, *args):
     elif status == 0:
         await ctx.send('Invalid URL Format.')
 
-@bot.command()
+@bot.command(brief='Retrieves link to a course. Usage: <Course> <Section>')
 async def getlink(ctx, *args):
     links, status = Schedule.get_link(*args)
     if status:
@@ -151,7 +152,7 @@ async def getlink(ctx, *args):
     else:
         await ctx.send("No such record.")
 
-@bot.command()
+@bot.command(brief='Removes given link *****')
 async def remove_link(ctx, *args):
     status = Schedule.remove_link(args[2])
     if status:
@@ -160,9 +161,10 @@ async def remove_link(ctx, *args):
         await ctx.send("Link not present.")
 
 
-
-@bot.command()
+# Removes all courses and (maybe) all related collections
+@bot.command(brief='Deregisters all courses. Use with caution!')
 async def remove_all(ctx):
-    await Schedule.remove_all(ctx)
+    await Schedule.remove_all()
+    await ctx.send('Database cleared.')
 
 bot.run(BOT_TOKEN)
