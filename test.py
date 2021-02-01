@@ -12,7 +12,7 @@ load_dotenv(find_dotenv())
 is_prod = os.environ['IS_HEROKU']
 
 MONGO_URL = os.environ['MONGO_URL']
-if is_prod == True:
+if is_prod == 'True':
     BOT_TOKEN = os.environ['BOT_TOKEN']
     bot = commands.Bot(command_prefix = '$')
 else:
