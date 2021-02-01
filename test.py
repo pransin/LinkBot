@@ -80,7 +80,7 @@ class Schedule():
     @staticmethod
     def deregister(*args):
         if Schedule.get_course(args[0]):
-            course = courses.delete_one({"name": args[0]})
+            courses.delete_one({"name": args[0]})
             return 1
         else:
             return 0
@@ -117,7 +117,7 @@ async def register_course(ctx, *args):
     else:
         try:
             Schedule(args[0], args[1], args[2], args[3], args[4])
-            await ctx.send(f"{args[0]} {args[1]} registered! :grin:")
+            await ctx.message.add_reaction('\U0001F44C')
         except Exception as e:
             await ctx.send(f'{e}')
 
@@ -125,7 +125,7 @@ async def register_course(ctx, *args):
 async def deregister(ctx, *args):
     status = Schedule.deregister(*args)
     if status:
-        await ctx.send('Course deregistered.')
+        await ctx.message.add_reaction('\U0001F44C')
     else:
         await ctx.send("Course does not exist.")
 
@@ -134,7 +134,7 @@ async def deregister(ctx, *args):
 async def addlink(ctx, *args):
     status = Schedule.add_link(*args)
     if status == 1:
-        await ctx.send(f'Link added to {args[0]} {args[1]}.')
+        await ctx.message.add_reaction('\U0001F44C')
     elif status == 2:
         await ctx.send(f'Link already exists!')
     elif status == 0:
@@ -165,7 +165,7 @@ async def remove_link(ctx, *args):
 
 # Removes all courses and (maybe) all related collections
 @bot.command(brief='Deregisters all courses. Use with caution!')
-async def remove_all(ctx):
+async def clear_database(ctx):
     await Schedule.remove_all()
     await ctx.send('Database cleared.')
 
