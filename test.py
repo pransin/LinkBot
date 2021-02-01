@@ -4,6 +4,7 @@ import pymongo
 from datetime import datetime
 import schedule
 import validators
+import json
 import os
 from dotenv import load_dotenv, find_dotenv
 
@@ -11,7 +12,7 @@ load_dotenv(find_dotenv())
 is_prod = os.environ['IS_HEROKU']
 
 MONGO_URL = os.environ['MONGO_URL']
-if is_prod:
+if is_prod == True:
     BOT_TOKEN = os.environ['BOT_TOKEN']
     bot = commands.Bot(command_prefix = '$')
 else:
@@ -47,12 +48,9 @@ class Schedule():
             course = courses.find_one_and_update({"name": subject}, {"$set": {"name": subject}}, upsert= True, return_document = pymongo.ReturnDocument.AFTER)
             sched = schedules.find_one({"course": course['_id'], "section": section})
             if sched is None:
-                schedules.insert_one({"course": course['_id'], "day": day.lower(), "time": time, "section": section, "link": [link]})
+                schedules.insert_one({"course": course['_id'], "day": day.upper(), "time": time, "section": section, "link": [link]})
             else:
-                if link in sched['link']:
-                    raise Exception("Link already added!")
-                else:
-                    schedules.update_one({"query": sched}, {"$push": {"link": link}})
+                raise Exception("Already registered! Use add_link to add a link to the record.")
         else:
             raise Exception("Invalid URL format.")
     
@@ -62,6 +60,7 @@ class Schedule():
         if validators.url(args[2]):
             course = courses.find_one_and_update({"name": args[0]}, {"$set": {"name": args[0]}}, upsert= True, return_document = pymongo.ReturnDocument.AFTER)
             sched = schedules.find_one({"course": course['_id'], "section": args[1]})
+            # adds the incoming link if the link is not already present
             if args[2] in sched['link']:
                 return 2
             else:
@@ -79,18 +78,28 @@ class Schedule():
     
     @staticmethod
     def deregister(*args):
-        if Schedule.get_course(args[0]):
+        # if Schedule.get_course(args[0]):
+        #     courses.delete_one({"name": args[0]})
+        #     return 1
+        # else:
+        #     return 0
+        if len(args) == 2:
+            status = schedules.delete_many({"course": Schedule.get_course(args[0])['_id'], "section":args[1]})
+            if schedules.find_one({"course": Schedule.get_course(args[0])['_id']}) is None:
+                courses.delete_one({"name": args[0]})
+        elif len(args) == 1:
+            status = schedules.delete_many({"course":  Schedule.get_course(args[0])['_id']})
             courses.delete_one({"name": args[0]})
-            return 1
         else:
-            return 0
+            return -1
+        return status.deleted_count
 
     @staticmethod
     def remove_link(*args):
         sched = Schedule.get_schedule(args[0], args[1])
         if args[2] in sched['link']:
             sched['link'].remove(args[2])
-            schedules.update_one(sched, {"$set": {"link": sched['link']}})   
+            schedules.update_one(sched, {"$set": {"link": sched['link']}})  #Probably wrong. Link is being set to old link and not deleted. @ingenium-cipher fix this. 
             return 1
         return 0
 
@@ -102,7 +111,7 @@ class Schedule():
 
 @bot.event
 async def on_ready():
-    print('Bot Ready')
+    print(f'Bot Ready')
   
 
 @bot.command(brief='The name says it all')
@@ -121,14 +130,15 @@ async def register_course(ctx, *args):
         except Exception as e:
             await ctx.send(f'{e}')
 
-@bot.command(brief='Supposedly deregisters all sections of a course')
+@bot.command(brief='Deregisters all sections of a course if no section is given, otherwise deregisters the given section.')
 async def deregister(ctx, *args):
     status = Schedule.deregister(*args)
-    if status:
+    if status > 0:
         await ctx.message.add_reaction('\U0001F44C')
-    else:
+    elif status == 0:
         await ctx.send("Course does not exist.")
-
+    else:
+        await ctx.send("C'mon, that's not even a valid syntax")
 
 @bot.command(aliases = ['add_link'], brief='Adds link to a course. Usage: <Course> <Section>')
 async def addlink(ctx, *args):
@@ -162,11 +172,16 @@ async def remove_link(ctx, *args):
     else:
         await ctx.send("Link not present.")
 
-
+@bot.command(brief='Shows all registered courses')
+async def show_all(ctx):
+    for x in courses.find():  
+        await ctx.send(x['name'] + '\n')
 # Removes all courses and (maybe) all related collections
 @bot.command(brief='Deregisters all courses. Use with caution!')
 async def clear_database(ctx):
     await Schedule.remove_all()
     await ctx.send('Database cleared.')
+
+
 
 bot.run(BOT_TOKEN)
