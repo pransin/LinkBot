@@ -6,6 +6,7 @@ import schedule
 import validators
 import json
 import os
+import re
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
@@ -35,15 +36,9 @@ courses = db["courses"]
 
 class Schedule():
 
-    @staticmethod
-    def get_course(name):
-        return courses.find_one({"name": name})
 
-    @staticmethod
-    def get_schedule(name, section):
-        return schedules.find_one({"course": Schedule.get_course(name)['_id'], "section": section})
 
-    def __init__(self, subject, day, time, section, link):
+    def __init__(self, subject, section, day, time, link):
         if validators.url(link):
             course = courses.find_one_and_update({"name": subject}, {"$set": {"name": subject}}, upsert= True, return_document = pymongo.ReturnDocument.AFTER)
             sched = schedules.find_one({"course": course['_id'], "section": section})
@@ -53,7 +48,37 @@ class Schedule():
                 raise Exception("Already registered! Use add_link to add a link to the record.")
         else:
             raise Exception("Invalid URL format.")
-    
+
+    #should be used when atleast two args are present    
+    @staticmethod
+    def argParser(*args):
+        keys = [1, 2, 3, 4, 5]
+        argDict = {key: None for key in keys}
+        for i in range(len(args)):
+            argDict[Schedule.ParseHelper(args[i])] = args[i]            
+        return tuple([argDict[i] for i in keys if argDict[i] is not None])
+            
+        
+    @staticmethod
+    def ParseHelper(arg):
+        if validators.url(arg): #link
+            return 5
+        if arg.isdigit(): #time
+            return 4
+        if re.match(r'[mtw(th)fsMTW(TH)FS(Th)]+$', arg): #day
+            return 3                                                           
+        if re.match(r'[TtPpLl]\d+$', arg): #section
+            return 2
+        if re.match(r'[a-zA-Z0-9-]+$', arg):  #course
+            return 1
+        
+    @staticmethod
+    def get_course(name):
+        return courses.find_one({"name": name})
+
+    @staticmethod
+    def get_schedule(name, section):
+        return schedules.find_one({"course": Schedule.get_course(name)['_id'], "section": section})   
     #adds meet link corresponding to a course
     @staticmethod
     def add_link(*args):
@@ -102,7 +127,7 @@ class Schedule():
             schedules.update_one(sched, {"$set": {"link": sched['link']}})  #Probably wrong. Link is being set to old link and not deleted. @ingenium-cipher fix this. 
             return 1
         return 0
-
+    
 
     @staticmethod
     async def remove_all():
@@ -138,7 +163,7 @@ async def deregister(ctx, *args):
     elif status == 0:
         await ctx.send("Course does not exist.")
     else:
-        await ctx.send("C'mon, that's not even a valid syntax")
+        await ctx.send("C'mon, that's not even valid syntax")
 
 @bot.command(aliases = ['add_link'], brief='Adds link to a course. Usage: <Course> <Section>')
 async def addlink(ctx, *args):
