@@ -8,6 +8,7 @@ dnspython==1.16.0
 idna==3.1
 multidict==5.1.0
 pymongo==3.11.2
+python-dotenv==0.15.0
 schedule==0.6.0
 six==1.15.0
 typing-extensions==3.7.4.3

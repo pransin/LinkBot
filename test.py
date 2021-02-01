@@ -5,17 +5,19 @@ from datetime import datetime
 import schedule
 import validators
 import os
+from dotenv import load_dotenv, find_dotenv
 
-# is_prod = os.environ['IS_HEROKU']
-# print(is_prod)
+load_dotenv(find_dotenv())
+is_prod = os.environ['IS_HEROKU']
 
-# if is_prod:
 MONGO_URL = os.environ['MONGO_URL']
-BOT_TOKEN = os.environ['BOT_TOKEN']
-# else:
-    # from keyconfig import *
+if is_prod:
+    BOT_TOKEN = os.environ['BOT_TOKEN']
+    bot = commands.Bot(command_prefix = '$')
+else:
+    BOT_TOKEN = os.environ['TEST_TOKEN']
+    bot = commands.Bot(command_prefix = '~')
 
-bot = commands.Bot(command_prefix = '$')
 myclient = pymongo.MongoClient(MONGO_URL)
 db = myclient["linkbot"]
 
