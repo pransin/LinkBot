@@ -52,6 +52,8 @@ class Schedule():
     #should be used when atleast two args are present    
     @staticmethod
     def argParser(*args):
+        if (len(args) > 5):
+            raise Exception("Too many arguments")
         keys = [1, 2, 3, 4, 5]
         argDict = {key: None for key in keys}
         for i in range(len(args)):
@@ -71,13 +73,16 @@ class Schedule():
             return 2
         if re.match(r'[a-zA-Z0-9-]+$', arg):  #course
             return 1
-        
+        raise Exception("Unexpected arguments!")
+
     @staticmethod
     def get_course(name):
         return courses.find_one({"name": name})
 
     @staticmethod
-    def get_schedule(name, section):
+    def get_schedule(name, section='N/A'):
+        if section == 'N/A':
+            return schedules.find({"course": Schedule.get_course(name)['_id']})
         return schedules.find_one({"course": Schedule.get_course(name)['_id'], "section": section})   
     #adds meet link corresponding to a course
     @staticmethod
@@ -95,19 +100,18 @@ class Schedule():
 
     #retrieves link(s) of a subject from the db
     @staticmethod
-    def get_link(*args):
-        sched = Schedule.get_schedule(args[0], args[1])
-        if sched:
-            return sched['link'], 1
-        return None, 0
+    def get_link(name, section='N/A'):            
+        sched = Schedule.get_schedule(name, section)
+        if isinstance(sched, pymongo.cursor.Cursor):
+            links = []
+            for doc in sched:
+                links.extend(doc['link'])
+            return links
+        else:
+            return sched['link']
     
     @staticmethod
     def deregister(*args):
-        # if Schedule.get_course(args[0]):
-        #     courses.delete_one({"name": args[0]})
-        #     return 1
-        # else:
-        #     return 0
         if len(args) == 2:
             status = schedules.delete_many({"course": Schedule.get_course(args[0])['_id'], "section":args[1]})
             if schedules.find_one({"course": Schedule.get_course(args[0])['_id']}) is None:
@@ -175,20 +179,16 @@ async def addlink(ctx, *args):
     elif status == 0:
         await ctx.send('Invalid URL Format.')
 
-@bot.command(brief='Retrieves link to a course. Usage: <Course> <Section>')
+@bot.command(brief='Retrieves link(s) of a course', description='Usage: $getlink [Course Name] [Section]=optional.\n Sends links of all sections of a course if section is omitted.')
 async def getlink(ctx, *args):
-    links, status = Schedule.get_link(*args)
-    if status:
-        if len(links):
-            temp_links = []
-            for link in links:
-                temp_links.append("<" + link + ">")
-            await ctx.send('\n'.join(temp_links))
-        else:
-            await ctx.send("No links added :pensive:")
-    else:
-        await ctx.send("No such record.")
-
+    try:
+        links = Schedule.get_link(*args)
+        nospam = '>\n<'
+        print(links)
+        await ctx.send(f"<{nospam.join(links)}>")
+    except:
+        await ctx.send("You sure that course/link has been added?")
+ 
 @bot.command(brief='Removes given link *****')
 async def remove_link(ctx, *args):
     status = Schedule.remove_link(args[2])

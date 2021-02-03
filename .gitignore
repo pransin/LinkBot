@@ -3,3 +3,4 @@ linkbot-env
 __pycache__
 .env
 .vscode/
+sample.py
