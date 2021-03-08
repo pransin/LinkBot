@@ -207,6 +207,8 @@ async def clear_database(ctx):
     await Schedule.remove_all()
     await ctx.send('Database cleared.')
 
-
+@bot.command()
+async def testcommand(ctx, arg1, arg2):
+    print(arg1)
 
 bot.run(BOT_TOKEN)
