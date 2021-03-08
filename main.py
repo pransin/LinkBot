@@ -20,7 +20,7 @@ for filename in os.listdir('./cogs'):
 
 @bot.event
 async def on_ready():
-    print(f'Bot Ready')
+    print('Bot Ready')
   
 
 @bot.command(brief='The name says it all')
@@ -31,9 +31,11 @@ async def ping(ctx):
 async def load(ctx, extension):
     bot.load_extension(f'cogs.{extension}')
 
+
 @bot.command(brief="Dev Command")
 async def unload(ctx, extension):
     bot.unload_extension(f'cogs.{extension}')
+
 
 @bot.command(brief="Dev Command")
 async def reload(ctx, extension):

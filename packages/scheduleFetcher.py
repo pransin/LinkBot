@@ -25,6 +25,7 @@ courses = db["courses"]
  ####################### Convenience Functions  ########################   
 
 def argParser(*args):
+
     if (len(args) > 5):
         raise Exception("Too many arguments")
     keys = [1, 2, 3, 4, 5]
@@ -37,13 +38,13 @@ def argParser(*args):
 def ParseHelper(arg):
     if validators.url(arg): #link
         return 5
-    if arg.isdigit(): #time
+    if arg.isdigit(): #time 
         return 4
-    if re.match(r'[mtw(th)fsMTW(TH)FS(Th)]+$', arg): #day
+    if re.match(r'[mtw(th)fsMTW(TH)FS(Th)]+$', arg): #day   
         return 3                                                           
-    if re.match(r'[TtPpLl]\d+$', arg): #section
+    if re.match(r'[TtPpLl]\d+$', arg): #section   
         return 2
-    if re.match(r'[a-zA-Z0-9-]+$', arg):  #course
+    if re.match(r'[a-zA-Z0-9-]+$', arg):  #course    
         return 1
     raise Exception("Unexpected arguments!")
 
@@ -57,21 +58,18 @@ def get_schedule(name, section='N/A'):
 
 #########################################################################################
 
-async def register_course(ctx, *arguments):
-        if len(arguments) != 5:
-            await ctx.send('Usage: Course, section, day, time, link')
+def register_course(*arguments):
+    if len(arguments) != 5:
+        # await ctx.send('Usage: Course, day, time, section, link')
+        raise Exception("Invalid number of Arguments.")
+    else:
+        args = argParser(*arguments) 
+        course = courses.find_one_and_update({"name": args[0]}, {"$set": {"name": args[0]}}, upsert= True, return_document = pymongo.ReturnDocument.AFTER)
+        sched = schedules.find_one({"course": course['_id'], "section": args[1]})
+        if sched is None:
+            schedules.insert_one({"course": course['_id'], "day": args[2].upper(), "time": args[3], "section": args[1], "link": [args[4]]})
         else:
-            try:
-                args = argParser(arguments) 
-                course = courses.find_one_and_update({"name": args[0]}, {"$set": {"name": args[0]}}, upsert= True, return_document = pymongo.ReturnDocument.AFTER)
-                sched = schedules.find_one({"course": course['_id'], "section": args[1]})
-                if sched is None:
-                    schedules.insert_one({"course": course['_id'], "day": args[2].upper(), "time": args[3], "section": args[1], "link": [args[4]]})
-                else:
-                    await ctx.send("Already registered! Use add_link to add a link to the record.")   
-            
-            except Exception as e:
-                await ctx.send(f'{e}')
+            raise Exception("Already registered! Use add_link to add a link to the record.")   
 
 #adds meet link corresponding to a course
 def add_link(*args):
@@ -125,5 +123,5 @@ def remove_all():
 def show_all():
     all_courses = []
     for x in courses.find():  
-        all_courses.append(x)
+        all_courses.append(x['name'])
     return all_courses
